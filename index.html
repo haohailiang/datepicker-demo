@@ -10,8 +10,8 @@
 </head>
 <body>
 
-<div class="ui-datepicker-wrapper">
-	<div class="ui-datepicker-header">
+<div class="ui-datepicker-wrapper" id="jUIDatePickerWrapper">
+	<!-- <div class="ui-datepicker-header">
 		<a href="javascript:;" class="ui-datepicker-btn ui-datepicker-prev">&lt;</a>
 		<a href="javascript:;" class="ui-datepicker-btn ui-datepicker-next">&gt;</a>
 		<span class="ui-datepicker-curr-month">2018-05</span>
@@ -77,10 +77,13 @@
 				</tr>
 			</tbody>
 		</table>
-	</div>
+	</div> -->
 </div>
 
 <script src="js/lib/jquery-1.9.1.min.js"></script>
 <script src="js/datepicker.js"></script>
+<script type="text/javascript">
+datepicker.init($('#jUIDatePickerWrapper'));
+</script>
 </body>
 </html>
