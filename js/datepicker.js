@@ -1,4 +1,7 @@
 var datepicker = {};
+var monthDate;
+var $wrapper;
+var today = new Date();
 
 // month为显示的月数
 datepicker.getMonthData = function(year, month){
@@ -67,7 +70,7 @@ datepicker.getMonthData = function(year, month){
 }
 
 datepicker.buildUI = function(year, month){
-	var monthData = this.getMonthData(year, month);
+	monthDate = this.getMonthData(year, month);
 	var html = '<div class="ui-datepicker-header">\
 		<a href="javascript:;" class="ui-datepicker-btn ui-datepicker-prev">&lt;</a>\
 		<a href="javascript:;" class="ui-datepicker-btn ui-datepicker-next">&gt;</a>\
@@ -87,12 +90,22 @@ datepicker.buildUI = function(year, month){
 				</tr>\
 			</thead>\
 			<tbody>';
-				for(var i=0,len=monthData.days.length; i<len; i++){
-					var data = monthData.days[i];
+				for(var i=0,len=monthDate.days.length; i<len; i++){
+					var data = monthDate.days[i];
 					if(i%7 === 0){
 						html += '<tr>';
 					}
-					html += '<td>'+ data.showDate +'</td>';
+
+					if(data.date<=0){
+						html += '<td data-date = ' + data.date+' class = "jNotThisMonth">'+ data.showDate +'</td>';
+					}else if(data.date>data.showDate){
+						html += '<td data-date = ' + data.date+' class = "jNotThisMonth">'+ data.showDate +'</td>';
+					}else if(data.showDate === today.getDate() && monthDate.month === today.getMonth()+1 && monthDate.year === today.getFullYear()){
+						html += '<td data-date = ' + data.date+' class = "on">'+ data.showDate +'</td>';
+					}else{
+						html += '<td data-date = ' + data.date+'>'+ data.showDate +'</td>';
+					}
+
 					if(i%7 === 6){
 						html += '</tr>';
 					}
@@ -105,7 +118,98 @@ datepicker.buildUI = function(year, month){
 	return html;
 }
 
-datepicker.init = function($dom){
-	var html = this.buildUI(2018, 5);
-	$dom.html(html);
+datepicker.render = function(direction){
+	var year, month;
+
+	if(monthDate){
+		year  = monthDate.year;
+		month = monthDate.month;
+	}
+
+
+	if(direction === 'prev'){
+		month --;
+	}
+	if(direction === 'next'){
+		month ++;
+	}
+
+	var html = datepicker.buildUI(year,month);
+
+	$wrapper = document.querySelector('.ui-datepicker-wrapper');
+	if(!$wrapper){
+		$wrapper           = document.createElement('div');
+		$wrapper.className = "ui-datepicker-wrapper";
+
+		document.body.appendChild($wrapper);
+	}
+	$wrapper.innerHTML = html;
+}
+
+datepicker.init = function(input){
+	datepicker.render();
+
+	var $input = document.querySelector(input);
+	var isOpen = false;
+
+    // 点击日期输入框
+	$input.addEventListener('click',function(){
+		if(isOpen){
+			$wrapper.classList.remove('ui-datepicker-wrapper-show');
+			isOpen = false;
+		}else{
+			$wrapper.classList.add('ui-datepicker-wrapper-show');
+			var left   = $input.offsetLeft;
+			var top    = $input.offsetTop;
+			var height = $input.offsetHeight;
+
+			$wrapper.style.top  = top + height + 8 + 'px';
+			$wrapper.style.left = left + 2 +'px';
+
+			isOpen = true;
+		}
+	},false);
+
+    // 点击上个月, 下个月输入框
+	$wrapper.addEventListener('click',function(e){
+		var $target = e.target;
+
+		if(!$target.classList.contains('ui-datepicker-btn')){
+			return;
+		};
+
+		if($target.classList.contains('ui-datepicker-prev-btn')){
+			datepicker.render('prev');
+		}else if($target.classList.contains('ui-datepicker-next-btn')){
+			datepicker.render('next');
+		}
+	},false);
+
+    // 点击日期小方格
+	$wrapper.addEventListener('click',function(e){
+		var $target = e.target;
+
+		if($target.tagName.toLowerCase() !=='td'){
+			return;
+		};
+
+		var date = new Date(monthDate.year, monthDate.month-1, $target.dataset.date);
+
+		$input.value = format(date);
+		$wrapper.classList.remove('ui-datepicker-wrapper-show');
+		isOpen = false;
+
+	},false);
+}
+
+function format(date){
+	var ret = '';
+	var padding =  function(num){
+		return num <= 9 ? '0' + num : num;
+	}
+	ret += date.getFullYear() + '-';
+	ret += padding(date.getMonth() + 1) + '-';
+	ret += padding(date.getDate());
+
+	return  ret;
 }
